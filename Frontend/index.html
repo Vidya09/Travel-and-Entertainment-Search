@@ -1,0 +1,247 @@
+﻿<!DOCTYPE html>
+<html ng-app="myApp">
+<head>
+
+    <meta name="viewport" content="minimum-scale=1.0, width=device-width, maximum-scale=1.0, user-scalable=no"/>
+    <meta charset="utf-8">
+
+    <title>Homework 8</title>
+
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/css/style.css"/>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.4/angular.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.4/angular-animate.js"></script>
+    
+    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCQKfWm3kFNFgMmRVucpEXC0C3qo1F5igg&libraries=places&callback=initAutocomplete"
+         async defer></script>
+    <script src="/js/moment.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/rateYo/2.3.2/jquery.rateyo.min.js"></script>
+    <script src="/js/setautocomplete.js"></script>
+    <script src="/js/dictionary.js"></script>
+
+</head>
+<body ng-controller="MyController">
+    <div>
+        <div class="container" style="background-color:#f7f7f7;border:2px solid #e5e5e5;width:60%;" >
+            <h2 style="text-align:center;font-size: 15px;font-weight: bold;">Travel and Entertainment Search</h2>
+            <form>
+                <div id="map"></div>
+                <div class="form-group">
+                    <label class="col-25" for="keyword">Keyword</label>
+                    <input type="text"  class="form-control col-75" id="keyword" name="keyword" ng-model="keywordName">
+                </div>
+                <div class="form-group">
+                    <label class="col-25" for="sel1">Category</label>
+                    <select class="form-control col-75 inputWidth" id="categoryOptions" ng-model="category">
+                        <option value="default">default</option>
+                        <option value="airport">Airport</option>
+                        <option value="amusement_park">Amusement Park</option>
+                        <option value="aquarium">Aquarium</option>
+                        <option value="art_gallery">Art Gallery</option>
+                        <option value="bakery">Bakery</option>
+                        <option value="bar">Bar</option>
+                        <option value="beauty_salon">Beauty Salon</option>
+                        <option value="bowling_alley">Bowling Alley</option>
+                        <option value="bus_station">Bus Station</option>
+                        <option value="cafe">Cafe</option>
+                        <option value="campground">Campground</option>
+                        <option value="car_rental">Car Rental</option>
+                        <option value="casino">Casino</option>
+                        <option value="lodging">Lodging</option>
+                        <option value="movie_theater">Movie Theater</option>
+                        <option value="museum">Museum</option>
+                        <option value="night_club">Night Club</option>
+                        <option value="park">Park</option>
+                        <option value="parking">Parking</option>
+                        <option value="restaurant">Restaurant</option>
+                        <option value="shopping_mall">Shopping Mall</option>
+                        <option value="stadium">Stadium</option>
+                        <option value="subway_sation">Subway Sation</option>
+                        <option value="taxi_stand">Taxi Stand</option>
+                        <option value="train_station">Train Station</option>
+                        <option value="transit_station">Transit Station</option>
+                        <option value="travel_agency">Travel Agency</option>
+                        <option value="zoo">Zoo</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="col-25" for="distance">Distance(miles)</label>
+                    <input type="text" class="form-control col-75 inputWidth" id="distance" name="distance" placeholder="10" ng-model="distance">
+                </div>
+                <div class="form-group">
+                    <label class="col-25" for="radio">From</label>
+                 <div class="col-75">
+                        <div class="radio">
+                            <label><input type="radio" name="location" checked onchange="setLocation(this);" value="From">Current Location</label>
+                        </div>
+                        <div class="radio">
+                            <label><input type="radio" name="location" onchange="setLocation(this);" value="location">Other, Please specify:</label>
+                            <input type="text" class="form-control inputWidth" id="otherlocation" name="locationInput" disabled ng-model="otherLocation">
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                <button type="button" class="btn btn-info" ng-disabled="disableSearchButton" ng-click="getSerachResults()">
+                    <span class="glyphicon glyphicon-search"></span> Search
+                </button>
+                <button type="button" class="btn btn-default">Clear</button>
+                </div>
+            </form>
+        </div>
+        
+        <div class="container" style="text-align: center;margin-top:1em;">
+                <ul class="nav nav-pills" style="display: inline-block;text-align: initial;">
+                    <li class="active"><a data-toggle="pill" href="#homeresults">Results</a></li>
+                    <li><a data-toggle="pill" href="#favorites">Favorites</a></li>
+                </ul>
+
+                <div class="tab-content">
+                    <div id="homeresults" class="tab-pane fade in active">
+
+                        <div class="container">
+                            <div class="progress" ng-if="placeSearchInProgress">
+                                <div class="progress-bar progress-bar-striped" role="progressbar" style="width: 50%" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                            <table class="table" ng-if="searchResults.length > 0&&!hideSearchTable">
+                                <thead>
+                                  <tr>
+                                    <th>#</th>
+                                    <th>Category</th>
+                                    <th>Name</th>
+                                    <th>Address</th>
+                                    <th>Favorite</th>
+                                    <th>Details</th>
+                                  </tr>
+                                </thead>
+                                <tbody>
+                                  <tr ng-repeat="item in searchResults">
+                                    <td>{{$index+1}}</td>
+                                    <td><img  style='height: 20px;width: 40px;padding-left:5px;' ng-src="{{item.icon}}"></td>
+                                    <td>{{item.name}}</td>
+                                    <td>{{item.vicinity}}</td>
+                                    <td><button type="button" class="btn btn-default btn-sm">
+                                            <span class="glyphicon glyphicon-star-empty"></span> 
+                                        </button>
+                                    </td>
+                                    <td><button type="button" class="btn btn-default btn-sm" ng-click="getPlaceDetails(item)">
+                                            <span class="glyphicon glyphicon-menu-right"></span> 
+                                        </button>
+                                    </td>
+                                  </tr>
+
+                                </tbody>
+                            </table>
+                            <div ng-if="hideSearchTable" class="slidingDiv">
+                                <div id='placeName' style='font-weight: bold;font-family:helvatica;text-align: center;margin-top: 2em;font-size: 20px;'></div>
+                                <div>
+                                    <div style="float:left;"><button type="button" class="btn btn-default btn-sm">
+                                        <span class="glyphicon glyphicon-menu-left"></span>List
+                                    </button></div>
+                                    <div style="float:right;">
+                                      <div style="float:left;"><button id="infoTabFav" type="button" class="btn btn-default btn-sm" disabled>
+                                                <span class="glyphicon glyphicon-star-empty"></span> 
+                                        </button></div>
+                                      <div style="float:left;margin-left: 0.5em;"><button id="twitterId" type="button" class="btn btn-default btn-sm" style="height: 30px;width:30px" disabled>
+                                                <img src="http://cs-server.usc.edu:45678/hw/hw8/images/Twitter.png" style="height:20px;width:20px;"/> 
+                                        </button></div>
+                                    </div>
+                                </div>
+                                <ul class="nav nav-tabs" style="margin-top:5em;">
+                                  <li class="pull-right"><a href="#tab_reviews" data-toggle="tab">Reviews</a></li>
+                                  <li class="pull-right"><a href="#tab_maps" data-toggle="tab" ng-click="getMaps();">Maps</a></li>
+                                  <li class="pull-right"><a href="#tab_photos" data-toggle="tab" ng-click="getPhotos();">Photos</a></li>
+                                  <li class="active pull-right"><a href="#tab_info" data-toggle="tab">Info</a></li>
+                                </ul>
+                                <div class="tab-content" >
+                                        <div class="tab-pane" id="tab_reviews">
+                                            <h4>Pane Reviews</h4>
+                                            <p>Pellentesque habitant morbi tristique senectus et netus et malesuada fames
+                                                ac turpis egestas.</p>
+                                        </div>
+                                        <div class="tab-pane" id="tab_maps">
+                                           <div style="margin-top:3em;">
+                                               <div style="float:left;"><label>From</label>
+                                                   <input style="width:350px;" type="text" class="form-control" id="mapfrom" name="mapfrom">
+                                               </div>
+                                               <div style="float:left;margin-left:1em;"><label>To</label>
+                                                   <input style="width:350px;" type="text" class="form-control" id="mapto" name="mapto" disabled></div>
+                                               <div style="float:left;margin-left:1em;"> 
+                                                   <label>Travel Mode</label>
+                                                   <select id="mode" class="form-control" style="width:180px;">
+                                                          <option value="DRIVING">Driving</option>
+                                                          <option value="WALKING">Walking</option>
+                                                          <option value="BICYCLING">Bicycling</option>
+                                                          <option value="TRANSIT">Transit</option>
+                                                    </select>
+                                               </div>
+                                               
+                                               <div style="float:left;margin-left:2em;margin-top:1.7em;">
+                                                   <label> </label>
+                                                   <button type="button" class="btn btn-info" style="width:200px;" ng-click="directionWithTravelMode()">Get Direction</button></div>
+                                               <div><button id="pegmanId" ng-click="maptoggle()" type="button" class="btn btn-default btn-sm" style="height: 30px;width:30px;margin-bottom:1em;" ><img src="http://cs-server.usc.edu:45678/hw/hw8/images/Pegman.png" style="height:20px;width:20px;"/> 
+                                                </button></div>
+                                            </div>
+                                            
+                                           <div id="showmapsdiv" style="position: initial;width: 81em;height: 35em;overflow: hidden;margin-top: 5em;"></div>
+                                           <div id="down-panel"></div>
+                                        </div>
+                                        <div class="tab-pane" id="tab_photos">
+                                            <div class="row"> 
+                                                      <div class="column" id="column1" style="width:100%;">
+                                                        
+                                                      </div>
+                                                      <div class="column" id="column2" style="width:100%;">
+                                                        
+                                                      </div>  
+                                                      <div class="column" id="column3" style="width:100%;">
+                                                        
+                                                      </div>
+                                                      <div class="column" id="column4" style="width:100%;">
+                                                        
+                                                      </div>
+                                            </div>
+                                        </div>
+                                        <div class="tab-pane active" id="tab_info">
+                                            <div id="infoTable">
+                                               
+                                            </div>
+                                        </div>
+                                </div><!-- tab content -->
+
+                            </div><!-- end right-tabs -->  
+                       </div>
+                    </div>
+
+                    <div id="favorites" class="tab-pane fade">
+
+                    </div>
+                  </div>
+            </div>
+        
+        <div class="modal fade" id="myModal" role="dialog">
+            <div class="modal-dialog">
+    
+              <!-- Modal content-->
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <button type="button" class="close" data-dismiss="modal">&times;</button>
+                      <h4 class="modal-title">Open hours</h4>
+                    </div>
+                    <div class="modal-body">
+                      <p>Some hours in the modal.</p>
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    </div>
+                  </div>
+            </div>
+        </div>
+        
+    </div>
+    
+
+</body>
+</html>

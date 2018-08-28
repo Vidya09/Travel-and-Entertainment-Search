@@ -1,14 +1,3 @@
-/*$(document).ready(function () {
-    debugger;
-    $.getJSON("/dictionary-api?test=works", printTerms);
-    
-});
-
-function printTerms(terms) {
-    debugger;
-    alert("gotdata");
-}*/
-
 var myApp = angular.module('myApp', ['ngAnimate']);
 
 myApp.controller('MyController', function MyController($scope,$http) {
@@ -33,25 +22,17 @@ myApp.controller('MyController', function MyController($scope,$http) {
       }
   }); 
     
-   $scope.getPlaceDetails = function(test){
-      debugger;
-      //$scope.rowPlace = test;
+   $scope.getPlaceDetails = function(places){
       $scope.hideSearchTable = true;
-      var request = test.place_id;
-      //$scope.searchResults
-       
+      var request = places.place_id;
+     
       var service = new google.maps.places.PlacesService(document.getElementById('map'));
       service.getDetails({placeId:request}, function(place, status) {
-          debugger;
             if (status == google.maps.places.PlacesServiceStatus.OK) {
                 $scope.placeDetails = place;
-                //alert($scope.placeDetails);
                 fillInfoTab($scope.placeDetails);
             }
         });
-      //$scope.places = $scope.placeDetails;
-       //alert($scope.places);
-        
   };
     
     $scope.getPhotos = function(){
@@ -59,17 +40,14 @@ myApp.controller('MyController', function MyController($scope,$http) {
     };
     
     $scope.directionWithTravelMode = function(){
-        debugger;
         directionTravelMode();
     }
     
     $scope.getMaps = function(){
-        debugger;
         var sourcelat,sourcelng;
         if(document.getElementById("otherlocation").value != ''){
             var otherLocation = document.getElementById("otherlocation").value;
             $http.get('/lnglat-api?&otherlocation='+ otherLocation+'').then(function(response) {
-              debugger;
               var geometryValues = response;
                 sourcelat = response.data.location.lat;
                 sourcelng = response.data.location.lng;
@@ -95,19 +73,15 @@ myApp.controller('MyController', function MyController($scope,$http) {
       var category = $scope.category;
       var otherLocation = document.getElementById("otherlocation").value;
       $http.get('/dictionary-api?lat='+lat+'&lon='+lon+'&keyword='+keywordText+'&distance='+distance+'&otherlocation='+ otherLocation+'&category='+category+'').then(function(response) {
-      debugger;
           $scope.searchResults = response.data.results;
           $scope.placeSearchInProgress = false;
          
      }); 
   };
-    
- 
+   
   $scope.maptoggle = function(){
       togglemap();
   }
- 
-  
 });
 
 
